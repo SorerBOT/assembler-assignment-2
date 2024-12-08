@@ -9,12 +9,15 @@
         .string " %d"
     unsigned_char_fmt:
         .string " %hhu"
+    invalid_option_str:
+        .string "invalid option!\n"
 .section    .text
 .extern     printf
 .extern     scanf
 .extern     pstrlen
 .extern     swapCase
 .extern     pstrijcpy
+.extern     pstrcat
 .globl  run_func
 .type   run_func, @function
     run_func:
@@ -28,7 +31,9 @@
         je      option_33
         cmpq    $34, %rdi
         je      option_34
-        jmp     epilogue
+        cmpq    $37, %rdi
+        je      option_37
+        jmp     invalid_option
         option_31:
             movq    %rsi, %rdi
             call    pstrlen
@@ -113,8 +118,36 @@
             call    printf
             jmp    epilogue
         option_37:
+            movq   %rsi, %rdi # dest
+            movq   %rdx, %rsi # src
+
+            call    pstrcat
+            # moving to tmp
+            movq    %rax, %r12 # dest
+            movq    %rsi, %r13 # src
+            # now getting dest string len
+            movq    %r12, %rdi
+            call    pstrlen
+            movq    %rax, %rsi
+            # printing dest
+            movq    $swapCase_fmt, %rdi
+            leaq    1(%r12), %rdx
+            call    printf
+            # getting src len
+            movq    %r13, %rdi
+            call    pstrlen
+            movq    %rax, %rsi
+            # printing src
+            movq    $swapCase_fmt, %rdi
+            leaq    1(%r13), %rdx
+            call    printf
+
             jmp    epilogue
 
+        invalid_option:
+            movq    $invalid_option_str, %rdi
+            call    printf
+            jmp     epilogue
         # epilogue
         epilogue:
             movq     $60, %rax

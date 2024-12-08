@@ -1,7 +1,8 @@
 .section .rodata
     invalidInput_fmt:
         .string "invalid input!\n"
-
+    cannot_concat_str:
+        .string "cannot concatenate strings!\n"
 .section    .text
 .global      pstrlen
 .type       pstrlen, @function
@@ -9,8 +10,8 @@
 .type       swapCase, @function
 .globl      pstrijcpy
 .type       pstrijcpy, @function
-.globl      strcat
-.type       strcat, @function
+.globl      pstrcat
+.type       pstrcat, @function
 
 pstrlen:
     # prologue
@@ -121,19 +122,62 @@ pstrijcpy:
 
     finishedCpy:
         #epilogue
+        movq    %r13, %rsi # not exactly return value, but abusing the register
         movq    %r12, %rax # returning destination
 	    movq	%rbp, %rsp
 	    popq	%rbp
 	    ret
 
-strcat:
+pstrcat:
     # prologue
 	pushq	%rbp
 	movq	%rsp, %rbp
 
+    movq    %rdi, %r12 # dest
+    movq    %rsi, %r13 # src
 
+    # dest length
+    call    pstrlen
+    movq    %rax, %r10 # dest len
+    # src length
+    movq    %r13, %rdi
+    call    pstrlen
+    movq    %rax, %r11 # src len
 
-    #epilogue
-	movq	%rbp, %rsp
-	popq	%rbp
-	ret
+    # adding lengths
+    movq    %r10, %rdi
+    movq    %r11, %rsi
+    addq    %rsi, %rdi # joined length in %rdi
+    movq    %rdi, %r14 # <----
+
+    # checking for size
+    cmpq    $254, %r14
+    jg cannot_concatenate
+
+    # changing the size of destination
+    movb    %r14b, (%r12)
+    # concatenation
+    movq    $0, %r8 # %r8 will be our index
+    concat_i:
+        # movb    1(%r13, %r8), 1(%r12, %r10)
+        movzbq    1(%r13, %r8), %r15
+        movb      %r15b, 1(%r12, %r10)
+        # check if the char we copied was \0, if so we finished
+        cmpq    $0, 1(%r13, %r8)
+        je      finished_concat
+        # increment indices
+        incq    %r8
+        incq    %r10
+        jmp     concat_i
+    cannot_concatenate:
+        movq    $cannot_concat_str, %rdi
+        call    printf
+        jmp     finished_concat
+    finished_concat:
+        #epilogue
+        # moving the src back to %rsi so that we can use it again in the main function
+        movq    %r13, %rsi
+        movq    %r12, %rax
+	    movq	%rbp, %rsp
+	    popq	%rbp
+	    ret
