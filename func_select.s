@@ -152,6 +152,6 @@
             jmp     epilogue
         # epilogue
         epilogue:
-            movq     $60, %rax
-            xorq     %rdi, %rdi
-            syscall
+	        movq	%rbp, %rsp
+	        popq	%rbp
+	        ret
