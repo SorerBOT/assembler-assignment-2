@@ -1,3 +1,5 @@
+# Alon Filler ID: 216872374
+
 .section    .rodata
     quad_fmt:
 	    .string "%ld\n"
@@ -18,7 +20,7 @@
 .extern     swapCase
 .extern     pstrijcpy
 .extern     pstrcat
-.globl  run_func
+.global  run_func
 .type   run_func, @function
     run_func:
         # prologue

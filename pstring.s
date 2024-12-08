@@ -1,16 +1,19 @@
+# Alon Filler ID: 216872374
+
 .section .rodata
     invalidInput_fmt:
         .string "invalid input!\n"
     cannot_concat_str:
         .string "cannot concatenate strings!\n"
 .section    .text
-.global      pstrlen
+.extern     printf
+.global     pstrlen
 .type       pstrlen, @function
-.globl      swapCase
+.global      swapCase
 .type       swapCase, @function
-.globl      pstrijcpy
+.global      pstrijcpy
 .type       pstrijcpy, @function
-.globl      pstrcat
+.global      pstrcat
 .type       pstrcat, @function
 
 pstrlen:
