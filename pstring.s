@@ -1,5 +1,3 @@
-# Alon Filler ID: 216872374
-
 .section .rodata
     invalidInput_fmt:
         .string "invalid input!\n"
@@ -136,51 +134,52 @@ pstrcat:
 	pushq	%rbp
 	movq	%rsp, %rbp
 
-    movq    %rdi, %r12 # dest
+    movq    %rdi, %r12 # destination
     movq    %rsi, %r13 # src
 
-    # dest length
     call    pstrlen
-    movq    %rax, %r10 # dest len
-    # src length
+    movq    %rax, %r10 # dest length
+
     movq    %r13, %rdi
     call    pstrlen
     movq    %rax, %r11 # src len
 
-    # adding lengths
+    # calculating combined length
     movq    %r10, %rdi
     movq    %r11, %rsi
-    addq    %rsi, %rdi # joined length in %rdi
-    movq    %rdi, %r14 # <----
-
-    # checking for size
+    addq    %rsi, %rdi
+    movq    %rdi, %r14 # combined length
+    # checking if valid
     cmpq    $254, %r14
-    jg cannot_concatenate
+    jg      cannot_concat
+    jmp     concat_i
 
-    # changing the size of destination
-    movb    %r14b, (%r12)
-    # concatenation
-    movq    $0, %r8 # %r8 will be our index
+    xorq    %r9, %r9 # this will be the index
+    xorq    %r15, %r15 # i + dest.length
     concat_i:
-        # movb    1(%r13, %r8), 1(%r12, %r10)
-        movzbq    1(%r13, %r8), %r15
-        movb      %r15b, 1(%r12, %r10)
-        # check if the char we copied was \0, if so we finished
-        cmpq    $0, 1(%r13, %r8)
-        je      finished_concat
-        # increment indices
-        incq    %r8
-        incq    %r10
+        # getting dest.length + i into a register
+        movq    %r9, %r15
+        addq    %r10, %r15
+        # dest[dest.length + i] = src[i]
+        movzbq    1(%r13, %r9), %r8
+        movb      %r8b, 1(%r12, %r15)
+
+        # if what we copied was \0 then we finished
+        cmpq    $0, %r8
+        je      update_dest_size
+        # otherwise, increase both i
+        incq    %r9
         jmp     concat_i
-    cannot_concatenate:
+
+    update_dest_size:
+        movb    %r14b, (%r12)
+        jmp     finished_contact
+    cannot_concat:
         movq    $cannot_concat_str, %rdi
         call    printf
-        jmp     finished_concat
-    finished_concat:
-        #epilogue
-        # moving the src back to %rsi so that we can use it again in the main function
-        movq    %r13, %rsi
-        movq    %r12, %rax
+        jmp finished_contact
+    finished_contact:
+        movq    %r12, %rax # returning pointer to dest
 	    movq	%rbp, %rsp
 	    popq	%rbp
 	    ret

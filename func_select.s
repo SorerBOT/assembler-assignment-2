@@ -1,5 +1,3 @@
-# Alon Filler ID: 216872374
-
 .section    .rodata
     quad_fmt:
 	    .string "%ld\n"
@@ -120,26 +118,25 @@
             call    printf
             jmp    epilogue
         option_37:
-            movq   %rsi, %rdi # dest
-            movq   %rdx, %rsi # src
+            movq    %rsi, %r12 # destination
+            movq    %rdx, %r13 # src
 
+            movq    %r12, %rdi # destination
+            movq    %r13, %rsi # src
             call    pstrcat
-            # moving to tmp
-            movq    %rax, %r12 # dest
-            movq    %rsi, %r13 # src
-            # now getting dest string len
+
+            # printing dest string
             movq    %r12, %rdi
-            call    pstrlen
+            call    pstrlen # putting dest.length in %rax
             movq    %rax, %rsi
-            # printing dest
             movq    $swapCase_fmt, %rdi
             leaq    1(%r12), %rdx
             call    printf
-            # getting src len
+
+            # printing src
             movq    %r13, %rdi
             call    pstrlen
             movq    %rax, %rsi
-            # printing src
             movq    $swapCase_fmt, %rdi
             leaq    1(%r13), %rdx
             call    printf
